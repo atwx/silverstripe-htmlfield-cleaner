@@ -17,7 +17,10 @@ class HtmlFieldCleanerTest extends SapphireTest
     {
         $this->assertSame(
             '<p class="lead"><a href="/foo" target="_blank">Link</a></p>',
-            $this->clean('<p class="lead" style="color: red" data-x="1"><a href="/foo" target="_blank" onclick="x()">Link</a></p>')
+            $this->clean(
+                '<p class="lead" style="color: red" data-x="1">'
+                . '<a href="/foo" target="_blank" onclick="x()">Link</a></p>'
+            )
         );
     }
 
@@ -33,7 +36,10 @@ class HtmlFieldCleanerTest extends SapphireTest
     {
         $this->assertSame(
             '<p>A <u>under <strong>bold</strong></u> B</p>',
-            $this->clean('<p>A <span style="text-decoration: underline;">under <strong style="x">bold</strong></span> B</p>')
+            $this->clean(
+                '<p>A <span style="text-decoration: underline;">'
+                . 'under <strong style="x">bold</strong></span> B</p>'
+            )
         );
     }
 

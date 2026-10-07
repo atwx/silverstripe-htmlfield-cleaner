@@ -81,12 +81,12 @@ class HtmlFieldCleaner
     public function getSettings(array $overrides = []): array
     {
         $settings = [];
-        foreach (array_merge(['enabled'], self::LIST_SETTINGS) as $key) {
+        foreach (array_merge(['enabled'], HtmlFieldCleaner::LIST_SETTINGS) as $key) {
             $settings[$key] = static::config()->get($key) ?? [];
         }
 
         foreach ($overrides as $key => $value) {
-            if (in_array($key, self::LIST_SETTINGS, true) && is_array($value)) {
+            if (in_array($key, HtmlFieldCleaner::LIST_SETTINGS, true) && is_array($value)) {
                 $settings[$key] = array_merge((array) ($settings[$key] ?? []), $value);
             } else {
                 $settings[$key] = $value;
