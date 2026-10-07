@@ -1,1 +1,41 @@
-# see https://docs.silverstripe.org/en/developer_guides/configuration/configuration/
+---
+Name: htmlfieldcleaner
+---
+# Default cleaning rules. All lists are maps (item: true|false) so that projects
+# can switch single entries off again, e.g. `class: false`. Plain YAML lists
+# (`- item`) are accepted as well, but can only be extended, not reduced.
+Atwx\HtmlFieldCleaner\HtmlFieldCleaner:
+  enabled: true
+
+  # db field types that get cleaned (matched by prefix, e.g. HTMLText, HTMLVarchar, HTMLFragment)
+  field_type_prefixes:
+    HTML: true
+
+  # Only these attributes survive. Leave empty to keep all attributes.
+  attribute_whitelist:
+    href: true
+    src: true
+    alt: true
+    title: true
+    target: true
+    rel: true
+    class: true
+  # Attributes that are always removed. '*' removes all attributes.
+  attribute_blacklist: {}
+
+  # Only these tags survive (removed together with their content!). Leave empty to allow all tags.
+  tag_whitelist: {}
+  # Tags that are removed together with their content.
+  tag_blacklist: {}
+
+  # Tags that are removed while their content is kept. '*' unwraps everything.
+  unwrap:
+    span: true
+
+  # Tags that are renamed: `b: strong`. `~` (null) replaces the tag with its plain text content.
+  replacements: {}
+
+  # Classes implementing Atwx\HtmlFieldCleaner\Preprocessors\Preprocessor,
+  # running on the DOM before the cleaning rules above are applied.
+  preprocessors:
+    underline: Atwx\HtmlFieldCleaner\Preprocessors\UnderlineSpanPreprocessor

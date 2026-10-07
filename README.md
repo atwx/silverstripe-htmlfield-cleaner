@@ -1,88 +1,155 @@
-# Silverstripe CMS supported module skeleton
+# Silverstripe HTML Field Cleaner
 
-A useful skeleton to more easily create a [Silverstripe CMS Module](https://docs.silverstripe.org/en/developer_guides/extending/modules/) that conform to the
-[Module Standard](https://docs.silverstripe.org/en/developer_guides/extending/modules/#module-standard).
+Cleans the HTML fields (`HTMLText`, `HTMLVarchar`, …) of DataObjects before they are written.
+Unwanted attributes such as inline styles and `data-*` are removed, `<span>` tags get unwrapped,
+and TinyMCE's underline spans are turned into `<u>`. All rules are configured in YAML.
 
-This README contains descriptions of the parts of this module base you should customise to meet you own module needs.
-For example, the module name in the H1 above should be you own module name, and the description text you are reading now
-is where you should provide a good short explanation of what your module does.
-
-Where possible we have included default text that can be included as is into your module and indicated in
-other places where you need to customise it
-
-Below is a template of the sections of your `README.md` you should ideally include to met the Module Standard
-and help others make use of your modules.
-
-## Steps to prepare this module for your own use
-
-Ensure you read the
-['publishing a module'](https://docs.silverstripe.org/en/developer_guides/extending/how_tos/publish_a_module/) guide
-and update your module's `composer.json` to designate your code as a Silversripe CMS module.
-
-- Clone this repository into a folder
-- Add your name/organisation to `LICENSE.md`
-- Update this README with information about your module. Ensure sections that aren't relevant are deleted and
-placeholders are edited where relevant
-- Review the README files in the various provided directories. You should ultimately delete these README files when you have added your code
-- Update the module's `composer.json` with your requirements and package name
-- Update (or remove) `package.json` with your requirements and package name. Run `yarn install` (or remove `yarn.lock`) to
-ensure dependencies resolve correctly
-- Clear the git history by running `rm -rf .git && git init`
-- Add and push to a VCS repository
-- Either [publish](https://getcomposer.org/doc/02-libraries.md#publishing-to-packagist) the module on packagist.org, or add a [custom repository](https://getcomposer.org/doc/02-libraries.md#publishing-to-a-vcs) to your main `composer.json`
-- Require the module in your main `composer.json`
-- If you need to build your css or js and are using components, injector, scss variables, etc from `silverstripe/admin`:
-  - Ensure that `silverstripe/admin` is installed with `composer install --prefer-source` instead of the default `--prefer-dist` (you can use `composer reinstall silverstripe/admin --prefer-source` if you already installed it)
-  - If you are relying on additional dependencies from `silverstripe/admin` instead of adding them as dependencies in your `package.json` file, you need to install third party dependencies in `silverstripe/admin` by running `yarn install` in the `vendor/silverstripe/admin/` directory.
-- Start developing your module!
-
-## License
-
-See [License](LICENSE.md)
-
-This module template defaults to using the "BSD-3-Clause" license. The BSD-3 license is one of the most
-permissive open-source license and is used by most Silverstripe CMS module.
-
-To publish your module under a different license:
-
-- update the [`license.md`](LICENSE.md) file
-- update the `license' key in your [`composer.json`](composer.json).
-
-You can use [choosealicense.com](https://choosealicense.com) to help you pick a suitable license for your project.
-
-You do not need to keep this section in your README file - the `LICENSE.md` file is sufficient.
+Built on [mehr-it/html-cleaner](https://github.com/mehr-it/html-cleaner).
 
 ## Installation
 
-Replace `silverstripe-module/skeleton` in the command below with the composer name of your module.
-
 ```sh
-composer require silverstripe-module/skeleton
+composer require atwx/silverstripe-htmlfield-cleaner
 ```
 
-**Note:** When you have completed your module, submit it to Packagist or add it as a VCS repository to your
-project's composer.json, pointing to the private repository URL.
+The extension is applied automatically to:
 
-## Documentation
+- `SilverStripe\CMS\Model\SiteTree` (if `silverstripe/cms` is installed)
+- `SilverStripe\SiteConfig\SiteConfig` (if `silverstripe/siteconfig` is installed)
+- `DNADesign\Elemental\Models\BaseElement` (if `dnadesign/silverstripe-elemental` is installed)
 
-- [Documentation readme](docs/en/README.md)
-
-Add links into your `docs/<language>` folder here unless your module only requires minimal documentation
-in that case, add here and remove the docs folder. You might use this as a quick table of content if you
-mhave multiple documentation pages.
-
-## Example configuration
-
-If your module makes use of the config API in Silverstripe CMS it's a good idea to provide an example config
-here that will get the module working out of the box and expose the user to the possible configuration options.
-Though note that in many cases simply linking to the documentation is enough.
-
-Provide a syntax-highlighted code examples where possible.
+Add it to other DataObjects yourself:
 
 ```yaml
-Page:
-  config_option: true
-  another_config:
-    - item1
-    - item2
+App\Models\Event:
+  extensions:
+    - Atwx\HtmlFieldCleaner\Extensions\HtmlFieldCleanerExtension
+```
+
+## Default behaviour
+
+| Setting               | Default                                                    |
+|-----------------------|------------------------------------------------------------|
+| `attribute_whitelist` | `href`, `src`, `alt`, `title`, `target`, `rel`, `class`    |
+| `unwrap`              | `span`                                                     |
+| `preprocessors`       | `underline`: `<span style="text-decoration: underline">` → `<u>` |
+| `field_type_prefixes` | `HTML` (all db types starting with `HTML`)                 |
+
+## Global configuration
+
+All list settings are **maps** (`item: true|false`). This lets you switch off a single default
+entry, which plain YAML lists can't do, because Silverstripe merges lists by appending.
+Plain lists (`- item`) are still accepted for adding entries.
+
+```yaml
+---
+Name: app-htmlfieldcleaner
+After: htmlfieldcleaner
+---
+Atwx\HtmlFieldCleaner\HtmlFieldCleaner:
+  # switch the cleaner off entirely, e.g. in a dev environment
+  enabled: true
+
+  # only these attributes are kept (empty = keep all)
+  attribute_whitelist:
+    class: false          # remove a default entry
+    id: true              # add an entry
+  # these attributes are always removed ('*' = all)
+  attribute_blacklist:
+    onclick: true
+
+  # only these tags are kept, others are removed WITH their content (empty = allow all)
+  tag_whitelist: {}
+  # these tags are removed WITH their content
+  tag_blacklist:
+    script: true
+    style: true
+
+  # these tags are removed, their content is kept ('*' = all)
+  unwrap:
+    span: true
+    font: true
+
+  # rename tags; `~` replaces the tag with its plain text content; `false` disables an entry
+  replacements:
+    b: strong
+    i: em
+
+  # DOM preprocessors that run before the rules above; `~` disables one
+  preprocessors:
+    underline: ~
+```
+
+## Per class configuration
+
+Configured on the DataObject class. It inherits to subclasses, like any other Silverstripe config.
+
+```yaml
+# don't clean this class (and its subclasses) at all
+App\Elements\ElementEmbed:
+  html_cleaner_enabled: false
+
+App\Elements\ElementContent:
+  # overrides for all HTML fields of this class, merged into the global settings
+  html_cleaner:
+    attribute_whitelist:
+      style: true
+  # per field: `false` skips the field, a map overrides settings for this field only
+  html_cleaner_fields:
+    EmbedCode: false
+    Teaser:
+      tag_whitelist: [p, br, strong, em, a]
+```
+
+## Remove the default extensions
+
+The extensions are registered with the name `htmlfieldcleaner`, so they can be removed again:
+
+```yaml
+---
+Name: app-htmlfieldcleaner
+After: htmlfieldcleaner-extensions-siteconfig
+---
+SilverStripe\SiteConfig\SiteConfig:
+  extensions:
+    htmlfieldcleaner: null
+```
+
+## Custom preprocessors
+
+Preprocessors work on the parsed DOM before the cleaning rules are applied. Use them to convert
+markup that would otherwise be lost, as the underline preprocessor does.
+
+```php
+use Atwx\HtmlFieldCleaner\Preprocessors\Preprocessor;
+use DOMDocumentFragment;
+
+class MyPreprocessor implements Preprocessor
+{
+    public function process(DOMDocumentFragment $fragment): void
+    {
+        // manipulate $fragment
+    }
+}
+```
+
+```yaml
+Atwx\HtmlFieldCleaner\HtmlFieldCleaner:
+  preprocessors:
+    mine: App\HtmlCleaner\MyPreprocessor
+```
+
+## Using the cleaner directly
+
+```php
+use Atwx\HtmlFieldCleaner\HtmlFieldCleaner;
+
+$clean = HtmlFieldCleaner::singleton()->clean($html);
+$clean = HtmlFieldCleaner::singleton()->clean($html, ['attribute_whitelist' => ['style' => true]]);
+```
+
+## Running the tests
+
+```sh
+vendor/bin/phpunit vendor/atwx/silverstripe-htmlfield-cleaner/tests/php
 ```

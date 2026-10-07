@@ -26,7 +26,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Atwx\\HtmlFieldCleaner\\Tests\\": "tests/"
+            "Atwx\\HtmlFieldCleaner\\Tests\\": "tests/php/"
         }
     },
     "minimum-stability": "dev",

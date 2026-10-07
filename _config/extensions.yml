@@ -1,0 +1,27 @@
+---
+Name: htmlfieldcleaner-extensions
+Only:
+  moduleexists: silverstripe/cms
+---
+# Named extensions, so a project can remove them again with `htmlfieldcleaner: null`.
+SilverStripe\CMS\Model\SiteTree:
+  extensions:
+    htmlfieldcleaner: Atwx\HtmlFieldCleaner\Extensions\HtmlFieldCleanerExtension
+
+---
+Name: htmlfieldcleaner-extensions-siteconfig
+Only:
+  moduleexists: silverstripe/siteconfig
+---
+SilverStripe\SiteConfig\SiteConfig:
+  extensions:
+    htmlfieldcleaner: Atwx\HtmlFieldCleaner\Extensions\HtmlFieldCleanerExtension
+
+---
+Name: htmlfieldcleaner-extensions-elemental
+Only:
+  moduleexists: dnadesign/silverstripe-elemental
+---
+DNADesign\Elemental\Models\BaseElement:
+  extensions:
+    htmlfieldcleaner: Atwx\HtmlFieldCleaner\Extensions\HtmlFieldCleanerExtension
